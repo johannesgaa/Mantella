@@ -3,6 +3,11 @@
 // Armadillo
 #include <armadillo>
 
+// OpenMP
+#if defined(SUPPORT_OPENMP)
+  #include <omp.h>
+#endif
+
 // Mantella
 #include "mantella_bits/optimisationAlgorithm/populationBasedOptimisationAlgorithm.hpp"
 namespace mant {

@@ -11,9 +11,6 @@
 // Mantella
 #include "mantella_bits/config.hpp" // IWYU pragma: keep
 
-// Armadillo
-#include <armadillo>
-
 namespace mant {
   class Rng {
    public:
