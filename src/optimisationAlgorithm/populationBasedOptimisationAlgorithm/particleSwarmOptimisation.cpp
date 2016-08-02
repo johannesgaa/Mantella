@@ -55,8 +55,12 @@ namespace mant {
                 localBestObjectiveValues_(n) = objectiveValues_(n);
               }
             }
-
+            
             arma::mat particles(arma::size(parameters_));
+
+#pragma omp parallel
+            {
+#pragma omp for schedule(static)
             for (arma::uword n = 0; n < populationSize_; ++n) {
               const arma::vec& particle = parameters_.col(n);
 
@@ -65,6 +69,7 @@ namespace mant {
 
               particles.col(n) = particle + velocity;
               velocities_.col(n) = velocity;
+            }
             }
 
             return particles;
