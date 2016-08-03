@@ -50,5 +50,7 @@ namespace mant {
     double maximalAcceleration_;
     double maximalLocalAttraction_;
     double maximalGlobalAttraction_;
+    
+    MPI_Op MPI_Op_best_sample;
   };
 }

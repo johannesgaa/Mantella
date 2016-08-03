@@ -16,6 +16,32 @@
 namespace mant {
   ParticleSwarmOptimisation::ParticleSwarmOptimisation()
       : PopulationBasedOptimisationAlgorithm() {
+#if defined(SUPPORT_MPI)
+    MPI_Op_create(&mpiOpBestSample, 1, &MPI_Op_best_sample);
+
+    setCommunicationFunctions(
+        {{[this](
+              const arma::uword numberOfDimensions_,
+              const arma::mat& parameters_,
+              const arma::rowvec& objectiveValues_,
+              const arma::rowvec& differences_) {
+            MPI_Datatype MANT_MPI_SAMPLE;
+            MPI_Type_contiguous(static_cast<int>(2 + numberOfDimensions_), MPI_DOUBLE, &MANT_MPI_SAMPLE);
+            MPI_Type_commit(&MANT_MPI_SAMPLE);
+            arma::vec mpiSendSample(2 + numberOfDimensions_);
+            mpiSendSample(0) = static_cast<double>(numberOfDimensions_);
+            mpiSendSample(1) = bestFoundObjectiveValue_;
+            mpiSendSample.tail(numberOfDimensions_) = bestFoundParameter_;
+
+            arma::vec mpiReceiveSample(arma::size(mpiSendSample));
+            MPI_Allreduce(mpiSendSample.memptr(), mpiReceiveSample.memptr(), 1, MANT_MPI_SAMPLE, MPI_Op_best_sample, MPI_COMM_WORLD);
+
+            bestFoundObjectiveValue_ = mpiReceiveSample(1);
+            bestFoundParameter_ = mpiReceiveSample.tail(numberOfDimensions_);
+            return parameters_;
+        }, "Find the cluster-wide best found sample"}});
+#endif
+        
     setInitialisingFunctions(
         {{[this](
               const arma::uword numberOfDimensions_,
