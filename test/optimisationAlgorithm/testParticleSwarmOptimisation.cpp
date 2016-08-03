@@ -101,8 +101,8 @@ SCENARIO("ParticleSwarmOptimisation.getNeighbourhoodTopologyFunctionName", "[Par
   mant::ParticleSwarmOptimisation optimisationAlgorithm;
 
   WHEN("The default neighbourhood topology function is unchanged") {
-    THEN("Return 'Random'") {
-      CHECK(optimisationAlgorithm.getNeighbourhoodTopologyFunctionName() == "Random");
+    THEN("Return 'Global'") {
+      CHECK(optimisationAlgorithm.getNeighbourhoodTopologyFunctionName() == "Global");
     }
   }
 
