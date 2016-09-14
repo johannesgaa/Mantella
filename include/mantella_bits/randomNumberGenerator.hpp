@@ -52,6 +52,6 @@ namespace mant {
       }
     }
 
-    std::random_device::result_type setRandomSeed();
+    static std::random_device::result_type setRandomSeed();
   };
 }
