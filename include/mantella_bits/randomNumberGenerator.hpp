@@ -46,6 +46,7 @@ namespace mant {
 #pragma omp for schedule(static)
         for (arma::uword n = 0; n < MAXIMAL_NUMBER_OF_THREADS; ++n) {
                 std::cout << "threadnum " << threadNumber() << std::endl;
+                std::cout << "ompnum " << omp_get_thread_num() << std::endl;
           // Uses a different seed for each generator, deterministically based on the provided one.
           getGenerator().seed(seed + n);
         }
