@@ -27,8 +27,6 @@ namespace mant {
     static std::mt19937_64& getGenerator() {
       // **Note:** C++ guarantees under 7.1.2/4 that even if multiple threads attempt to initialize the same static local variable concurrently, the initialisation occurs exactly once.
       static std::array<std::mt19937_64, MAXIMAL_NUMBER_OF_THREADS> generators_;
-      
-      std::cout << "generatorsize " << generators_.size() << std::endl;
 
       if (threadNumber() >= generators_.size()) {
         throw std::runtime_error("Rng.getGenerator: The thread number exceeded the maximal number of threads to support.");
@@ -47,6 +45,8 @@ namespace mant {
       {
 #pragma omp for schedule(static)
         for (arma::uword n = 0; n < MAXIMAL_NUMBER_OF_THREADS; ++n) {
+                std::cout << "generatorsize " << generators_.size() << std::endl;
+                std::cout << "threadnum " << threadNumber() << std::endl;
           // Uses a different seed for each generator, deterministically based on the provided one.
           getGenerator().seed(seed + n);
         }
