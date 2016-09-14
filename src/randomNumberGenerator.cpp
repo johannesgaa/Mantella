@@ -3,6 +3,8 @@
 // C+ standard library
 #if defined(SUPPORT_MPI)
 #include <stexcept> // IWYU pragma: keep
+#endif
+#if defined(SUPPORT_MPI)
 #include <mpi.h> // IWYU pragma: keep
 #endif
 
