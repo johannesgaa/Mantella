@@ -11,9 +11,21 @@
 // Mantella
 #include "mantella_bits/config.hpp" // IWYU pragma: keep
 
+// C++ standard library
+#if defined(SUPPORT_MPI)
+#include <stdexcept> // IWYU pragma: keep
+#endif
+
+// MPI
+#if defined(SUPPORT_MPI)
+#include <mpi.h> // IWYU pragma: keep
+#endif
+
+
 namespace mant {
+
   class Rng {
-   public:
+  public:
     // The random number generator should act as a singleton, no need for default constructors.
     Rng() = delete;
     Rng(const Rng&) = delete;
@@ -37,8 +49,8 @@ namespace mant {
     // This must be implemented within the header as we want to be able to readjust `MAXIMAL_NUMBER_OF_THREADS` simply by predefining it prior to including Mantella the first time, without the need to recompile the library.
     // Therefore, everything that depends on `MAXIMAL_NUMBER_OF_THREADS` in any way needs to be header-only.
     static void setSeed(
-        const std::random_device::result_type seed) {
-// Since we use a local static variable to hold all generators - which is only accessible by calling `.getGenerator()` for each thread - we use OpenMP to iterate over `.getGenerator()` once per thread.
+            const std::random_device::result_type seed) {
+      // Since we use a local static variable to hold all generators - which is only accessible by calling `.getGenerator()` for each thread - we use OpenMP to iterate over `.getGenerator()` once per thread.
 #pragma omp parallel num_threads(MAXIMAL_NUMBER_OF_THREADS)
       {
 #pragma omp for schedule(static)
@@ -49,6 +61,18 @@ namespace mant {
       }
     }
 
-    static std::random_device::result_type setRandomSeed();
+    static std::random_device::result_type setRandomSeed() {
+      std::random_device randomDevice;
+      std::random_device::result_type seed = randomDevice();
+
+      // Provides a different seed for each MPI node.
+      for (arma::uword n = 1; n <= static_cast<decltype(n)> (nodeRank()); ++n) {
+        seed = randomDevice();
+      }
+
+      setSeed(seed);
+
+      return seed;
+    }
   };
 }
