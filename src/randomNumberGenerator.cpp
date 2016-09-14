@@ -2,11 +2,13 @@
 
 // C+ standard library
 #if defined(SUPPORT_MPI)
-#include <stexcept> // IWYU pragma: keep
+#include <stdexcept> // IWYU pragma: keep
 #endif
 #if defined(SUPPORT_MPI)
 #include <mpi.h> // IWYU pragma: keep
 #endif
+
+
 
 // Armadillo
 #include <armadillo>
