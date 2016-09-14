@@ -11,17 +11,6 @@
 // Mantella
 #include "mantella_bits/config.hpp" // IWYU pragma: keep
 
-// C++ standard library
-#if defined(SUPPORT_MPI)
-#include <stdexcept> // IWYU pragma: keep
-#endif
-
-// MPI
-#if defined(SUPPORT_MPI)
-#include <mpi.h> // IWYU pragma: keep
-#endif
-
-
 namespace mant {
 
   class Rng {
