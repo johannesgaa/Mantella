@@ -41,8 +41,8 @@ namespace mant {
             const std::random_device::result_type seed) {
       // Since we use a local static variable to hold all generators - which is only accessible by calling `.getGenerator()` for each thread - we use OpenMP to iterate over `.getGenerator()` once per thread.
 #pragma omp parallel for schedule(static)
-        for (arma::uword n = 0; n < omp_get_num_threads(); ++n) {
-                std::cout << "threadnum " << threadNumber() << std::endl;
+        for (arma::uword n = 0; n < numberOfThreads(); ++n) {
+                std::cout << "threadnum " << numberOfThreads() << std::endl;
           // Uses a different seed for each generator, deterministically based on the provided one.
           getGenerator().seed(seed + n);
         }
