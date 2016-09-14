@@ -51,6 +51,8 @@ namespace mant {
     double maximalLocalAttraction_;
     double maximalGlobalAttraction_;
     
+#if defined(SUPPORT_MPI)
     MPI_Op MPI_Op_best_sample;
+#endif
   };
 }
