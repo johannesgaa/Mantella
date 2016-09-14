@@ -139,6 +139,9 @@ add_library(mantella SHARED
   
   # Assertion
   src/assert.cpp
+
+  # Random number generator
+  src/randomNumberGenerator.cpp
   
   # MPI
   src/mpi.cpp
