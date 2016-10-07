@@ -16,19 +16,12 @@ namespace mant{
     
     double stumpffC(
         const double parameter){
-      
       if(parameter > 0){
-        
         return (1.0 - std::cos(std::sqrt(parameter))) / parameter;
-        
       }else if (parameter < 0){
-        
         return (std::cosh(std::sqrt(-parameter)) - 1.0) / -parameter;
-        
       }else{
-        
         return 0.5;
-        
       }
     }
     
@@ -36,17 +29,11 @@ namespace mant{
         const double parameter){
       
       if(parameter > 0){
-        
         return (std::sqrt(parameter) - std::sin(std::sqrt(parameter))) / std::pow(std::sqrt(parameter), 3.0);
-        
       }else if (parameter < 0){
-        
         return (std::sinh(std::sqrt(-parameter)) - std::sqrt(-parameter)) / std::pow(std::sqrt(-parameter), 3.0);
-        
-      }else{
-        
-        return 1.0 / 6.0;
-        
+      }else{       
+        return 1.0 / 6.0;  
       }
     }
     
