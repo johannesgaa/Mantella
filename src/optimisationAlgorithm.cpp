@@ -432,7 +432,46 @@ namespace mant {
     arma::rowvec objectiveValues(parameters.n_cols);
     arma::rowvec differences(parameters.n_cols);
 
+#if defined(SUPPORT_OPENMP)
     // **Note:** While the termination criteria for the maximal number of iterations and especially the maximal duration might be reached after each evaluation, we only need to check for an acceptable objective value if we found a better one.
+      objectiveValues = optimisationProblem.getObjectiveValueOfNormalisedParameter(parameters);
+
+      if (::mant::isRecordingSampling) {
+        for (arma::uword n = 0; n < parameters.n_cols; ++n) {
+        recordedSampling_.push_back({denormalisedParameters(optimisationProblem, parameters.col(n)), objectiveValues(n)});
+        }
+      }
+      
+      differences = objectiveValues - previousBestObjectiveValue;
+
+      usedDuration_ = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - initialTimePoint_);
+
+      for(arma::uword i = 0; i < parameters.n_cols; ++i) {
+        if (objectiveValues(i) < bestFoundObjectiveValue_) {
+          if (::mant::isVerbose) {
+            std::cout << "  Iteration #" << usedNumberOfIterations_ << " (after "
+                      << usedDuration_.count() << "ms)"
+  #if defined(SUPPORT_MPI)
+                      << " On node " << nodeRank() << ""
+  #endif
+                      << ": Found better solution.\n"
+                      << "    Difference to the previous best objective value: " << objectiveValues(i) - bestFoundObjectiveValue_ << "\n"
+                      << "    Best found objective value: " << objectiveValues(i) << "\n"
+                      << "    Best found parameter: " << denormalisedParameters(optimisationProblem, parameters.col(i)).t()
+                      << std::endl;
+          }
+
+          bestFoundParameter_ = parameters.col(i);
+          bestFoundObjectiveValue_ = objectiveValues(i);
+
+          // Stops with further function evaluations if we found an optimal objective value.
+          if (isFinished()) {
+            break;
+          }
+        }
+      }
+#else
+        // **Note:** While the termination criteria for the maximal number of iterations and especially the maximal duration might be reached after each evaluation, we only need to check for an acceptable objective value if we found a better one.
     for (arma::uword n = 0; n < parameters.n_cols && !isTerminated(); ++n) {
       const arma::vec& parameter = parameters.col(n);
       const double objectiveValue = optimisationProblem.getObjectiveValueOfNormalisedParameter(parameter);
@@ -469,6 +508,7 @@ namespace mant {
         }
       }
     }
+#endif
 
     return {objectiveValues, differences};
   }

@@ -35,6 +35,10 @@ namespace mant {
         arma::vec parameter);
     double getObjectiveValueOfNormalisedParameter(
         const arma::vec& normalisedParameter);
+    arma::rowvec getObjectiveValue(
+        arma::mat parameter);
+    arma::rowvec getObjectiveValueOfNormalisedParameter(
+        const arma::mat& normalisedParameter);
 
     void setLowerBounds(
         const arma::vec& lowerBounds);

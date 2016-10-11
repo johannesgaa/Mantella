@@ -106,9 +106,66 @@ namespace mant {
     assert(normalisedParameter.n_elem == numberOfDimensions_ && "OptimisationProblem.getObjectiveValueOfNormalisedParameter: The number of elements must be equal to the optimisation problem's number of dimensions.");
     assert(arma::all(lowerBounds_ <= upperBounds_) && "OptimisationProblem.getObjectiveValueOfNormalisedParameter: All upper bounds must be greater than their lower one.");
 
-    return getObjectiveValue(lowerBounds_ + normalisedParameter % (upperBounds_ - lowerBounds_));
+    return getObjectiveValue(static_cast<arma::vec>(lowerBounds_ + normalisedParameter % (upperBounds_ - lowerBounds_)));
   }
+  
+  arma::rowvec OptimisationProblem::getObjectiveValue(
+      arma::mat parameters) {
+    assert(parameters.n_rows == numberOfDimensions_ && "OptimisationProblem.getObjectiveValue: The number of elements must be equal to the optimisation problem's number of dimensions.");
+    assert(!parameters.has_nan() && "OptimisationProblem.getObjectiveValue: The parameter must not have NaNs.");
+    assert(objectiveFunctions_.size() > 0 && "OptimisationProblem.getObjectiveValue: At least one objective function must be defined.");
 
+    usedNumberOfEvaluations_+=parameters.n_cols;
+    
+    arma::rowvec objectiveValues(parameters.n_cols);
+
+    // Discretises the parameter
+#pragma omp parallel for
+    for(arma::uword i = 0; i< parameters.n_cols; i++) {
+      arma::vec localParam = parameters.col(i);
+      const arma::uvec& elementsToDiscretise = arma::find(minimalParameterDistance_ > 0);
+      localParam.elem(elementsToDiscretise) = arma::floor(localParam.elem(elementsToDiscretise) / minimalParameterDistance_.elem(elementsToDiscretise)) % minimalParameterDistance_.elem(elementsToDiscretise);
+      // For one dimension, nothing will change.
+      if (numberOfDimensions_ > 1) {
+        localParam = localParam.elem(parameterPermutation_);
+      }
+      localParam = (parameterScaling_ % localParam - parameterTranslation_);
+      // Rotations are only defined for at least 2 dimensional spaces.
+      if (numberOfDimensions_ > 1) {
+        localParam = parameterRotation_ * localParam;
+      }
+
+      double objectiveValue = 0.0;
+      const auto n = cachedSamples_.find(localParam);
+      if (n == cachedSamples_.cend()) {
+        // Increases the number of distinct evaluations only, if we actually compute the value.
+        ++usedNumberOfDistinctEvaluations_;
+
+        for (const auto& objectiveFunction : objectiveFunctions_) {
+          objectiveValue += objectiveFunction.first(localParam);
+          assert(!std::isnan(objectiveValue));
+        }
+
+        objectiveValue = objectiveValueScaling_ * objectiveValue + objectiveValueTranslation_;
+
+        if (::mant::isCachingSamples) {
+          cachedSamples_.insert({localParam, objectiveValue});
+        }
+      } else {
+        objectiveValue = n->second;
+      }
+      objectiveValues(i) = objectiveValue;
+    }
+    return objectiveValues;
+  }
+  arma::rowvec OptimisationProblem::getObjectiveValueOfNormalisedParameter(
+      const arma::mat& normalisedParameter) {
+    assert(normalisedParameter.n_elem == numberOfDimensions_ && "OptimisationProblem.getObjectiveValueOfNormalisedParameter: The number of elements must be equal to the optimisation problem's number of dimensions.");
+    assert(arma::all(lowerBounds_ <= upperBounds_) && "OptimisationProblem.getObjectiveValueOfNormalisedParameter: All upper bounds must be greater than their lower one.");
+
+    return getObjectiveValue(static_cast<arma::mat>((normalisedParameter.each_col() % (upperBounds_ - lowerBounds_)).each_col() + lowerBounds_));
+  }
+    
   void OptimisationProblem::setLowerBounds(
       const arma::vec& lowerBounds) {
     assert(lowerBounds.n_elem == numberOfDimensions_ && "OptimisationProblem.setLowerBounds: The lower bounds' number of elements must be equal to the optimisation problem's number of dimensions.");
